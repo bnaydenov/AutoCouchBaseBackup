@@ -1,6 +1,6 @@
-#! /bin/bash
-# AutoCouchBaseBackup 2.0 Backup Script
-# VER. 0.1
+#!/bin/bash
+# AutoCouchBaseBackup is a script which  backup Couchbase server 2.0 
+# VER. 0.1.1
 # Author: Bogdan Naydenov bnaydenov@gmail.com
 
 # Note, this is a lobotomized port of AutoMySQLBackup
@@ -29,7 +29,7 @@
 
 
 # Version of this script
-VER='0.1'
+VER='0.1.1'
 
 # Path to couchbase bin directory where cbbackup is located
 PATHTOCOUCHBASEBIN="/opt/couchbase/bin"
@@ -55,6 +55,9 @@ DNOW=`date +%u`                                   # Day number of the week 1 to 
 DOM=`date +%d`                                    # Date of the Month e.g. 27
 M=`date +%B`                                      # Month e.g January
 W=`date +%V`                                      # Week Number e.g 37
+LOGFILE=$BACKUPDIR/$DATE.log       		  # Logfile Name for general log  output from AutoCouchbaseBackup script
+LOGCOUCHBASE=$BACKUPDIR/Couchbase-Backup_$DATE.log 		  # Logfile Name for couchbase backup related output
+
 
 OPT=""                                            # OPT string for use with cbbackup
 
@@ -154,6 +157,12 @@ LATESTLINK="yes"
 #=====================================================================
 # Change Log
 #=====================================================================
+# VER 0.1.1 - (2012-10-22)
+# - Added log functionality. All general log output from 
+# AutoCouchbaseBackup script goes to LOGFILE.  All couchbase backup 
+# related output goes to LOGCOUCHBASE
+
+#
 # VER 0.1 - (2012-10-18)
 # - Initial Release -  basic backup functionality with daily, weekly 
 # and monthly rotation. Backup all bucket on all nodes   
@@ -167,6 +176,19 @@ LATESTLINK="yes"
 #=====================================================================
 #=====================================================================
 #=====================================================================
+
+
+# IO redirection for logging.
+touch $LOGFILE
+exec 6>&1           # Link file descriptor #6 with stdout.
+                    # Saves stdout.
+exec > $LOGFILE     # stdout replaced with file $LOGFILE.
+
+touch $LOGCOUCHBASE
+exec 7>&2           # Link file descriptor #7 with stderr.
+                    # Saves stderr.
+exec 2> $LOGCOUCHBASE    # stderr replaced with file $LOGCOUCHBASE
+
 
 shellout () {
     if [ -n "$1" ]; then
@@ -318,3 +340,5 @@ if [ "$POSTBACKUP" ]; then
     echo ======================================================================
 fi
 
+#close stdout and stderr
+exec 6>&- 7>&-
